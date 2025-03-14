@@ -1,9 +1,10 @@
-version: '3'
-
+version: '3.8'
 services:
-  discord-bot:
+  birthday-bot:
     build: .
-    restart: always
-    container_name: discord-bot
+    container_name: birthday-bot-container
+    env_file:
+      - .env
     volumes:
-      - ./data:/app/data
+      - ./data:/app/data 
+    restart: unless-stopped
