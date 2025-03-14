@@ -54,3 +54,9 @@ A Discord bot that reminds your server when it's someone's birthday! It allows u
 4. **Run the Bot:**
     ```bash
     python bot.py
+ ---
+### Future Additions
+- Birthday Roles: Automatically assign a special role (e.g., "🎂 Birthday Person") to users on their birthday and remove it after 24 hours.
+- Birthday Countdown: Add a command to show how many days are left until a user's birthday.
+- Birthday Leaderboard: Display a leaderboard of upcoming birthdays in the server.
+- Admin Commands: Allow admins to manage birthdays (e.g., delete or update birthdays for other users).
