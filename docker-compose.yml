@@ -1,0 +1,9 @@
+version: '3'
+
+services:
+  discord-bot:
+    build: .
+    restart: always
+    container_name: discord-bot
+    volumes:
+      - ./data:/app/data
