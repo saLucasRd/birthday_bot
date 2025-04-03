@@ -67,26 +67,34 @@ async def on_ready():
 
 async def check_birthdays():
     await client.wait_until_ready()
+    last_checked_date = None
+    
     while not client.is_closed():
         try:
             current_date = datetime.now(timezone.utc).strftime("%d/%m")
-
-            cursor = db_conn.cursor()
-            cursor.execute(
-                "SELECT user_id, username FROM birthdays WHERE date = ?",
-                (current_date,))
-            birthdays = cursor.fetchall()
-        
-            if birthdays:
-                channel = client.get_channel(channel_id)
-                for user_id, username in birthdays:
-                    await channel.send(f"🎉 @everyone, today is <@{user_id}>'s birthday! 🎂")
-
-            # Wait for 24 hours before checking again
-            await asyncio.sleep(86400)  # 86400 seconds = 24 hours
+            
+            # Only check if the date has changed since last check
+            if current_date != last_checked_date:
+                last_checked_date = current_date
+                
+                cursor = db_conn.cursor()
+                cursor.execute(
+                    "SELECT user_id, username FROM birthdays WHERE date LIKE ?",
+                    (f"%{current_date}%",))
+                birthdays = cursor.fetchall()
+                
+                if birthdays:
+                    channel = client.get_channel(channel_id)
+                    if channel:
+                        for user_id, username in birthdays:
+                            await channel.send(f"🎉 @everyone, today is <@{user_id}>'s birthday! 🎂")
+            
+            # Check every minute (adjust as needed)
+            await asyncio.sleep(60)
+            
         except Exception as e:
             print(f"Error checking birthdays: {e}")
-            await asyncio.sleep(3600)  # Wait 3600 sec = 1 hour before retrying if an error occurs
+            await asyncio.sleep(3600)
 
 # create slash / command
 #@client.tree.command(name="input", description="add your birthday", guild=GUILD_ID)
