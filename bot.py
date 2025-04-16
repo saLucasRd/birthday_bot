@@ -2,8 +2,8 @@ import os
 import discord
 import sqlite3
 import asyncio
+import schedule
 from discord.ext import commands
-from discord import app_commands
 from dotenv import load_dotenv
 from datetime import datetime, timezone, timedelta
 
@@ -51,6 +51,43 @@ intents.message_content = True
 #commands prefix are outdated
 client = Client(command_prefix="!", intents=intents)
 
+async def check_birthdays():
+    now_br = datetime.now(timezone(timedelta(hours=-3)))
+    current_date = now_br.strftime("%d/%m")
+
+    print(f"[{datetime.now()}] Checking for birthdays for: {current_date}")
+
+    cursor = db_conn.cursor()
+    cursor.execute(
+        "SELECT user_id, username FROM birthdays WHERE date LIKE ?",
+        (f"%{current_date}%",))
+    birthdays = cursor.fetchall()
+
+    if birthdays:
+        print(f"[{datetime.now()}] Found {len(birthdays)} birthdays today!")
+        channel = client.get_channel(channel_id)
+        if channel:
+            for user_id, username in birthdays:
+                await channel.send(f"🎉 @everyone, today is <@{user_id}>'s birthday! 🎂")
+
+        else:
+            print(f"[{datetime.now()}] No birthdays found today.")
+
+# create slash / command
+#@client.tree.command(name="input", description="add your birthday", guild=GUILD_ID)
+#async def birthday_input(interaction: discord.Integration):
+#    await interaction.response.send_message("input test")
+
+
+async def run_scheduler():
+    await client.wait_until_ready()
+    # Schedule the birthday check to run daily at a specific time (e.g., 08:00 Fortaleza time)
+    schedule.every().day.at("08:40").do(check_birthdays)
+
+    while not client.is_closed():
+        schedule.run_pending()
+        await asyncio.sleep(1)
+
 @client.event
 async def on_ready():
     print(f"Logged in as {client.user}")
@@ -62,44 +99,8 @@ async def on_ready():
     except Exception as e:
             print(f"Error syncing commands: {e}")
 
-    client.loop.create_task(check_birthdays())
-
-
-async def check_birthdays():
-    await client.wait_until_ready()
-    last_checked_date = None
-    
-    while not client.is_closed():
-        try:
-            current_date = datetime.now(timezone.utc).strftime("%d/%m")
-            
-            # Only check if the date has changed since last check
-            if current_date != last_checked_date:
-                last_checked_date = current_date
-                
-                cursor = db_conn.cursor()
-                cursor.execute(
-                    "SELECT user_id, username FROM birthdays WHERE date LIKE ?",
-                    (f"%{current_date}%",))
-                birthdays = cursor.fetchall()
-                
-                if birthdays:
-                    channel = client.get_channel(channel_id)
-                    if channel:
-                        for user_id, username in birthdays:
-                            await channel.send(f"🎉 @everyone, today is <@{user_id}>'s birthday! 🎂")
-            
-            # Check every minute (adjust as needed)
-            await asyncio.sleep(60)
-            
-        except Exception as e:
-            print(f"Error checking birthdays: {e}")
-            await asyncio.sleep(3600)
-
-# create slash / command
-#@client.tree.command(name="input", description="add your birthday", guild=GUILD_ID)
-#async def birthday_input(interaction: discord.Integration):
-#    await interaction.response.send_message("input test")
+    await check_birthdays() # for testing
+    client.loop.create_task(run_scheduler())
 
 @client.tree.command(name="date", description="Input your birthday in day/month format", guild=GUILD_ID)
 async def birthday_date(interaction: discord.Integration, date: str):
