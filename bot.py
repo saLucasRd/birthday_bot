@@ -82,7 +82,7 @@ async def check_birthdays():
 async def run_scheduler():
     await client.wait_until_ready()
     # Schedule the birthday check to run daily at a specific time (e.g., 08:00 Fortaleza time)
-    schedule.every().day.at("08:40").do(check_birthdays)
+    schedule.every().day.at("09:00").do(check_birthdays)
 
     while not client.is_closed():
         schedule.run_pending()
