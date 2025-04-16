@@ -124,7 +124,7 @@ async def birthday_date(interaction: discord.Integration, date: str):
 async def query_bd(interaction: discord.Integration):
     try:
         cursor = db_conn.cursor()
-        cursor.execute("SELECT user_id, date FROM birthdays")
+        cursor.execute("SELECT username, date FROM birthdays")
         rows = cursor.fetchall()
 
         if not rows:
@@ -132,9 +132,8 @@ async def query_bd(interaction: discord.Integration):
             return
     
         message = "📆 **Birthdays Registered in the Server:**\n"
-        for row in rows:
-            user_id, date = row
-            message += f"- <@{user_id}>: {date}\n"
+        for username, date in rows:
+            message += f"- {username}: {date}\n"
 
         await interaction.response.send_message(message)
     except Exception as e:
