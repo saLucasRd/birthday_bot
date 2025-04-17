@@ -70,8 +70,8 @@ async def check_birthdays():
             for user_id, username in birthdays:
                 await channel.send(f"🎉 @everyone, today is <@{user_id}>'s birthday! 🎂")
 
-        else:
-            print(f"[{datetime.now()}] No birthdays found today.")
+    else:
+        print(f"[{datetime.now()}] No birthdays found today.")
 
 # create slash / command
 #@client.tree.command(name="input", description="add your birthday", guild=GUILD_ID)
@@ -82,7 +82,7 @@ async def check_birthdays():
 async def run_scheduler():
     await client.wait_until_ready()
     # Schedule the birthday check to run daily at a specific time (e.g., 08:00 Fortaleza time)
-    schedule.every().day.at("09:00").do(check_birthdays)
+    schedule.every().day.at("09:15").do(check_birthdays).do(lambda: asyncio.create_task(check_birthdays()))
 
     while not client.is_closed():
         schedule.run_pending()
@@ -99,7 +99,7 @@ async def on_ready():
     except Exception as e:
             print(f"Error syncing commands: {e}")
 
-    await check_birthdays() # for testing
+    #await check_birthdays() # for testing
     client.loop.create_task(run_scheduler())
 
 @client.tree.command(name="date", description="Input your birthday in day/month format", guild=GUILD_ID)
